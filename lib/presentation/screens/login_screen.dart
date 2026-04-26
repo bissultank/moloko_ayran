@@ -1,5 +1,3 @@
-// Слой: presentation | Назначение: экран входа с валидацией формы и BlocConsumer
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -46,7 +44,9 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthError) {
+          if (state is AuthAuthenticated) {
+            context.go('/${AppConstants.routeCatalog}');
+          } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -68,14 +68,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Icon(
-                        Icons.lock_rounded,
+                        Icons.water_drop_rounded,
                         size: 56,
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       Text(
-                        'Добро пожаловать',
-                        style: Theme.of(context).textTheme.headlineSmall,
+                        AppConstants.appName,
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Натуральные продукты от фермеров',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 32),
@@ -103,8 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : Icons.visibility,
                           ),
                           onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
+                              () => _obscurePassword = !_obscurePassword),
                         ),
                       ),
                       const SizedBox(height: 24),

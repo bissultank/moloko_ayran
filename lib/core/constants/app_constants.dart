@@ -4,6 +4,8 @@ class AppConstants {
   // SharedPreferences keys
   static const String keyUserId = 'user_id';
   static const String keyUserEmail = 'user_email';
+  static const String kSessionKey = 'session_user_id';
+  static const String kUserEmailKey = 'session_user_email';
 
   // Route names
   static const String routeSplash = '/';
@@ -17,4 +19,7 @@ class AppConstants {
 
   // UI
   static const String appName = 'MolokoAyran';
+
+  // Validation
+  static const int kMinPasswordLength = 6;
 }

@@ -12,7 +12,6 @@ class AuthLocalDatasource {
 
   final AppDatabase _db;
 
-  // Регистрация: создаёт запись в таблице Users
   Future<User> register({
     required String name,
     required String email,
@@ -35,55 +34,50 @@ class AuthLocalDatasource {
           ),
         );
 
-    final userData = await (_db.select(_db.users)
-          ..where((u) => u.id.equals(id)))
+    final userRow = await (_db.select(_db.users)..where((u) => u.id.equals(id)))
         .getSingle();
 
-    return userData.toEntity();
+    return userRow.toEntity();
   }
 
-  // Вход: проверяет email + пароль
   Future<User> login({
     required String email,
     required String password,
   }) async {
-    final userData = await (_db.select(_db.users)
+    final userRow = await (_db.select(_db.users)
           ..where((u) => u.email.equals(email)))
         .getSingleOrNull();
 
-    if (userData == null) {
+    if (userRow == null) {
       throw Exception('Пользователь не найден');
     }
 
-    if (userData.password != password) {
+    if (userRow.password != password) {
       throw Exception('Неверный пароль');
     }
 
-    return userData.toEntity();
+    return userRow.toEntity();
   }
 
-  // Сохранение сессии в SharedPreferences
   Future<void> saveSession(User user) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(AppConstants.kSessionKey, user.id);
     await prefs.setString(AppConstants.kUserEmailKey, user.email);
   }
 
-  // Чтение сессии при запуске приложения
   Future<User?> loadSession() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt(AppConstants.kSessionKey);
 
     if (userId == null) return null;
 
-    final userData = await (_db.select(_db.users)
+    final userRow = await (_db.select(_db.users)
           ..where((u) => u.id.equals(userId)))
         .getSingleOrNull();
 
-    return userData?.toEntity();
+    return userRow?.toEntity();
   }
 
-  // Очистка сессии при выходе
   Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(AppConstants.kSessionKey);

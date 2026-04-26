@@ -2,7 +2,8 @@
 
 import 'package:drift/drift.dart';
 
-// Drift-таблица пользователей (генерирует UserData, UsersCompanion)
+// Drift генерирует класс UserRow (не User) — чтобы не конфликтовать с domain/entities/user.dart
+@DataClassName('UserRow')
 class Users extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get email => text().unique()();

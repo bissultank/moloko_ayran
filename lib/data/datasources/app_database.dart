@@ -1,4 +1,4 @@
-// Слой: data | Назначение: Drift AppDatabase — singleton, таблицы, маппер-расширения
+// Слой: data | Назначение: Drift AppDatabase — singleton, таблица Users
 
 import 'dart:io';
 
@@ -7,35 +7,28 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import '../../domain/entities/item.dart';
 import '../../domain/entities/user.dart';
-import '../models/item_model.dart';
 import '../models/user_model.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Users, Items])
+@DriftDatabase(tables: [Users])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
-  // Статический синглтон для простого доступа без DI-фреймворка
   static AppDatabase? _instance;
   static AppDatabase get instance => _instance ??= AppDatabase();
 
   @override
   int get schemaVersion => 1;
 
-  // Миграции при обновлении схемы
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) => m.createAll(),
-        onUpgrade: (m, from, to) async {
-          // Добавляйте миграции сюда при schemaVersion > 1
-        },
+        onUpgrade: (m, from, to) async {},
       );
 }
 
-// Открытие соединения с файлом БД в директории документов устройства
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
@@ -44,25 +37,12 @@ LazyDatabase _openConnection() {
   });
 }
 
-// Маппер расширения определены здесь, т.к. UserData/ItemData
-// генерируются build_runner в app_database.g.dart (part-файл)
-
-extension UserDataMapper on UserData {
+// UserRow — Drift-сгенерированный класс (не конфликтует с domain User)
+extension UserRowMapper on UserRow {
   User toEntity() => User(
         id: id,
         email: email,
         name: name,
         createdAt: createdAt,
-      );
-}
-
-extension ItemDataMapper on ItemData {
-  Item toEntity() => Item(
-        id: id,
-        title: title,
-        description: description,
-        status: status,
-        createdAt: createdAt,
-        updatedAt: updatedAt,
       );
 }
