@@ -1,4 +1,4 @@
-// Слой: data | Назначение: Drift AppDatabase — singleton, таблица Users
+// Слой: data | Назначение: Drift AppDatabase — Users, Products, Orders, CartItems
 
 import 'dart:io';
 
@@ -8,11 +8,14 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../domain/entities/user.dart';
+import '../models/cart_model.dart';
+import '../models/order_model.dart';
+import '../models/product_model.dart';
 import '../models/user_model.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Users])
+@DriftDatabase(tables: [Users, Products, Orders, CartItems])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
@@ -20,12 +23,16 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase get instance => _instance ??= AppDatabase();
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) => m.createAll(),
-        onUpgrade: (m, from, to) async {},
+        onUpgrade: (m, from, to) async {
+          if (from < 2) await m.createTable(products);
+          if (from < 3) await m.createTable(orders);
+          if (from < 4) await m.createTable(cartItems);
+        },
       );
 }
 
@@ -37,7 +44,6 @@ LazyDatabase _openConnection() {
   });
 }
 
-// UserRow — Drift-сгенерированный класс (не конфликтует с domain User)
 extension UserRowMapper on UserRow {
   User toEntity() => User(
         id: id,
