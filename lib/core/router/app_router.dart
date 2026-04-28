@@ -8,6 +8,7 @@ import '../../presentation/screens/register_screen.dart';
 import '../../presentation/screens/main_screen.dart';
 import '../../presentation/screens/catalog/catalog_screen.dart';
 import '../../presentation/screens/catalog/product_detail_screen.dart';
+import '../../presentation/screens/cart/cart_screen.dart';
 import '../../presentation/screens/orders/orders_screen.dart';
 import '../../presentation/screens/analytics/analytics_screen.dart';
 
@@ -41,6 +42,10 @@ final GoRouter appRouter = GoRouter(
               },
             ),
           ],
+        ),
+        GoRoute(
+          path: '/${AppConstants.routeCart}',
+          builder: (context, state) => const CartScreen(),
         ),
         GoRoute(
           path: '/${AppConstants.routeOrders}',

@@ -14,6 +14,7 @@ class AppConstants {
   static const String routeMain = '/main';
   static const String routeCatalog = 'catalog';
   static const String routeProductDetail = 'product/:id';
+  static const String routeCart = 'cart';
   static const String routeOrders = 'orders';
   static const String routeAnalytics = 'analytics';
 

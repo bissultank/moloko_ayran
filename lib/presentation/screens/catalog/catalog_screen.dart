@@ -1,21 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-// Категории продуктов — временно здесь, потом переедет в domain/entities
-enum ProductCategory {
-  all('Все', Icons.grid_view_rounded),
-  milk('Молоко', Icons.water_drop_outlined),
-  ayran('Айран', Icons.local_drink_outlined),
-  kurt('Құрт', Icons.circle_outlined),
-  smetana('Сметана', Icons.opacity_outlined),
-  tvorog('Творог', Icons.square_outlined),
-  kaymak('Қаймақ', Icons.blur_circular_outlined),
-  shubat('Шұбат', Icons.wine_bar_outlined);
-
-  final String label;
-  final IconData icon;
-  const ProductCategory(this.label, this.icon);
-}
+import '../../../domain/entities/product.dart';
+import '../../blocs/cart/cart_bloc.dart';
+import '../../blocs/product/product_bloc.dart';
 
 class CatalogScreen extends StatefulWidget {
   const CatalogScreen({super.key});
@@ -25,7 +14,7 @@ class CatalogScreen extends StatefulWidget {
 }
 
 class _CatalogScreenState extends State<CatalogScreen> {
-  ProductCategory _selectedCategory = ProductCategory.all;
+  ProductCategory? _selectedCategory;
   final _searchController = TextEditingController();
 
   @override
@@ -36,67 +25,83 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Каталог'),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {}, // TODO: профиль
-          ),
-        ],
       ),
       body: Column(
         children: [
-          // Поиск
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: SearchBar(
               controller: _searchController,
               hintText: 'Поиск продуктов...',
               leading: const Icon(Icons.search),
-              onChanged: (value) => setState(() {}),
+              onChanged: (value) =>
+                  context.read<ProductBloc>().add(ProductSearch(value)),
               padding: const WidgetStatePropertyAll(
                   EdgeInsets.symmetric(horizontal: 16)),
             ),
           ),
           const SizedBox(height: 12),
-
-          // Фильтр по категории
           SizedBox(
             height: 40,
-            child: ListView.separated(
+            child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
-              itemCount: ProductCategory.values.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final category = ProductCategory.values[index];
-                final isSelected = category == _selectedCategory;
-                return FilterChip(
-                  label: Text(category.label),
-                  avatar: Icon(category.icon, size: 16),
-                  selected: isSelected,
-                  onSelected: (_) =>
-                      setState(() => _selectedCategory = category),
-                );
-              },
+              children: [
+                _CategoryChip(
+                  label: 'Все',
+                  selected: _selectedCategory == null,
+                  onTap: () {
+                    setState(() => _selectedCategory = null);
+                    context
+                        .read<ProductBloc>()
+                        .add(const ProductFilterByCategory(null));
+                  },
+                ),
+                const SizedBox(width: 8),
+                ...ProductCategory.values.map((c) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _CategoryChip(
+                        label: c.label,
+                        selected: _selectedCategory == c,
+                        onTap: () {
+                          setState(() => _selectedCategory = c);
+                          context
+                              .read<ProductBloc>()
+                              .add(ProductFilterByCategory(c));
+                        },
+                      ),
+                    )),
+              ],
             ),
           ),
           const SizedBox(height: 12),
-
-          // Список продуктов — заглушка
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: 8,
-              itemBuilder: (context, index) {
-                return _ProductCard(
-                  index: index,
-                  onTap: () => context.go('/catalog/product/$index'),
-                );
+            child: BlocBuilder<ProductBloc, ProductState>(
+              builder: (context, state) {
+                if (state is ProductLoading || state is ProductInitial) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state is ProductError) {
+                  return Center(child: Text('Ошибка: ${state.message}'));
+                }
+                if (state is ProductLoaded) {
+                  if (state.products.isEmpty) {
+                    return const Center(child: Text('Продукты не найдены'));
+                  }
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: state.products.length,
+                    itemBuilder: (context, index) {
+                      final product = state.products[index];
+                      return _ProductCard(product: product);
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
               },
             ),
           ),
@@ -106,38 +111,34 @@ class _CatalogScreenState extends State<CatalogScreen> {
   }
 }
 
-class _ProductCard extends StatelessWidget {
-  final int index;
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip(
+      {required this.label, required this.selected, required this.onTap});
+  final String label;
+  final bool selected;
   final VoidCallback onTap;
-
-  const _ProductCard({required this.index, required this.onTap});
-
-  static const _mockProducts = [
-    (
-      'Молоко фермерское 3.5%',
-      'Молоко',
-      '450 ₸ / л',
-      Icons.water_drop_outlined
-    ),
-    ('Айран домашний', 'Айран', '350 ₸ / л', Icons.local_drink_outlined),
-    ('Құрт сушёный', 'Құрт', '1200 ₸ / кг', Icons.circle_outlined),
-    ('Сметана 25%', 'Сметана', '600 ₸ / кг', Icons.opacity_outlined),
-    ('Творог зернистый', 'Творог', '700 ₸ / кг', Icons.square_outlined),
-    ('Қаймақ домашний', 'Қаймақ', '800 ₸ / кг', Icons.blur_circular_outlined),
-    ('Шұбат натуральный', 'Шұбат', '900 ₸ / л', Icons.wine_bar_outlined),
-    ('Молоко козье', 'Молоко', '550 ₸ / л', Icons.water_drop_outlined),
-  ];
 
   @override
   Widget build(BuildContext context) {
-    final (name, category, price, icon) =
-        _mockProducts[index % _mockProducts.length];
-    final theme = Theme.of(context);
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onTap(),
+    );
+  }
+}
 
+class _ProductCard extends StatelessWidget {
+  const _ProductCard({required this.product});
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        onTap: onTap,
+        onTap: () => context.go('/catalog/product/${product.id}'),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -150,39 +151,42 @@ class _ProductCard extends StatelessWidget {
                   color: theme.colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: theme.colorScheme.primary, size: 28),
+                child: Icon(Icons.water_drop_outlined,
+                    color: theme.colorScheme.primary, size: 28),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name,
+                    Text(product.name,
                         style: theme.textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
-                    Text(category,
+                    Text('${product.category.label} · ${product.farmer}',
                         style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant)),
+                    const SizedBox(height: 4),
+                    Text(
+                        '${product.price.toStringAsFixed(0)} ₸/${product.unit}',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(price,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  FilledButton.tonal(
-                    onPressed: onTap,
-                    style: FilledButton.styleFrom(
-                        minimumSize: const Size(72, 32),
-                        padding: EdgeInsets.zero),
-                    child: const Text('Открыть'),
-                  ),
-                ],
+              IconButton.filled(
+                icon: const Icon(Icons.add_shopping_cart),
+                tooltip: 'В корзину',
+                onPressed: () {
+                  context.read<CartBloc>().add(CartAdd(product));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${product.name} добавлен в корзину'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                },
               ),
             ],
           ),

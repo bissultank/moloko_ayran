@@ -7,6 +7,7 @@ import '../../core/utils/validators.dart';
 import '../../core/widgets/custom_text_field.dart';
 import '../../core/widgets/loading_button.dart';
 import '../blocs/auth/auth_bloc.dart';
+import '../blocs/cart/cart_bloc.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -45,6 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
+            // Загружаем корзину этого пользователя
+            context.read<CartBloc>().add(const CartLoad());
             context.go('/${AppConstants.routeCatalog}');
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
