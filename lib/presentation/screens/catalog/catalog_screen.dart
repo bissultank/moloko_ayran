@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../domain/entities/product.dart';
 import '../../blocs/cart/cart_bloc.dart';
 import '../../blocs/product/product_bloc.dart';
@@ -29,6 +30,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
       appBar: AppBar(
         title: const Text('Каталог'),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle_outlined),
+            tooltip: 'Профиль',
+            onPressed: () => context.push(AppConstants.routeProfile),
+          ),
+        ],
       ),
       body: Column(
         children: [

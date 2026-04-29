@@ -2,19 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/router/app_router.dart';
+import 'data/datasources/address_local_datasource.dart';
 import 'data/datasources/app_database.dart';
 import 'data/datasources/auth_local_datasource.dart';
 import 'data/datasources/cart_local_datasource.dart';
 import 'data/datasources/order_local_datasource.dart';
 import 'data/datasources/product_local_datasource.dart';
+import 'data/repositories/address_repository_impl.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/order_repository_impl.dart';
 import 'data/repositories/product_repository_impl.dart';
+import 'domain/usecases/address_usecases.dart';
 import 'domain/usecases/check_session_usecase.dart';
 import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/order_usecases.dart';
 import 'domain/usecases/product_usecases.dart';
 import 'domain/usecases/register_usecase.dart';
+import 'presentation/blocs/address/address_bloc.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/cart/cart_bloc.dart';
 import 'presentation/blocs/order/order_bloc.dart';
@@ -52,6 +56,9 @@ class MolokoAyranApp extends StatelessWidget {
 
     final cartDatasource = CartLocalDatasource(db);
 
+    final addressDatasource = AddressLocalDatasource(db);
+    final addressRepository = AddressRepositoryImpl(addressDatasource);
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -84,6 +91,15 @@ class MolokoAyranApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => CartBloc(cartDatasource)..add(const CartLoad()),
+        ),
+        BlocProvider(
+          create: (_) => AddressBloc(
+            getUserAddressesUseCase: GetUserAddressesUseCase(addressRepository),
+            createUseCase: CreateAddressUseCase(addressRepository),
+            updateUseCase: UpdateAddressUseCase(addressRepository),
+            deleteUseCase: DeleteAddressUseCase(addressRepository),
+            setDefaultUseCase: SetDefaultAddressUseCase(addressRepository),
+          ),
         ),
       ],
       child: MaterialApp.router(

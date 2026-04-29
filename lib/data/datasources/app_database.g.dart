@@ -1506,6 +1506,376 @@ class CartItemsCompanion extends UpdateCompanion<CartItemRow> {
   }
 }
 
+class $AddressesTable extends Addresses
+    with TableInfo<$AddressesTable, AddressRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AddressesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+      'label', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _streetMeta = const VerificationMeta('street');
+  @override
+  late final GeneratedColumn<String> street = GeneratedColumn<String>(
+      'street', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _apartmentMeta =
+      const VerificationMeta('apartment');
+  @override
+  late final GeneratedColumn<String> apartment = GeneratedColumn<String>(
+      'apartment', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _cityMeta = const VerificationMeta('city');
+  @override
+  late final GeneratedColumn<String> city = GeneratedColumn<String>(
+      'city', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _isDefaultMeta =
+      const VerificationMeta('isDefault');
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+      'is_default', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_default" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, userId, label, street, apartment, city, isDefault];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'addresses';
+  @override
+  VerificationContext validateIntegrity(Insertable<AddressRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+          _labelMeta, label.isAcceptableOrUnknown(data['label']!, _labelMeta));
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('street')) {
+      context.handle(_streetMeta,
+          street.isAcceptableOrUnknown(data['street']!, _streetMeta));
+    } else if (isInserting) {
+      context.missing(_streetMeta);
+    }
+    if (data.containsKey('apartment')) {
+      context.handle(_apartmentMeta,
+          apartment.isAcceptableOrUnknown(data['apartment']!, _apartmentMeta));
+    }
+    if (data.containsKey('city')) {
+      context.handle(
+          _cityMeta, city.isAcceptableOrUnknown(data['city']!, _cityMeta));
+    } else if (isInserting) {
+      context.missing(_cityMeta);
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(_isDefaultMeta,
+          isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AddressRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AddressRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}user_id'])!,
+      label: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}label'])!,
+      street: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}street'])!,
+      apartment: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}apartment'])!,
+      city: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}city'])!,
+      isDefault: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
+    );
+  }
+
+  @override
+  $AddressesTable createAlias(String alias) {
+    return $AddressesTable(attachedDatabase, alias);
+  }
+}
+
+class AddressRow extends DataClass implements Insertable<AddressRow> {
+  final int id;
+  final int userId;
+  final String label;
+  final String street;
+  final String apartment;
+  final String city;
+  final bool isDefault;
+  const AddressRow(
+      {required this.id,
+      required this.userId,
+      required this.label,
+      required this.street,
+      required this.apartment,
+      required this.city,
+      required this.isDefault});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['user_id'] = Variable<int>(userId);
+    map['label'] = Variable<String>(label);
+    map['street'] = Variable<String>(street);
+    map['apartment'] = Variable<String>(apartment);
+    map['city'] = Variable<String>(city);
+    map['is_default'] = Variable<bool>(isDefault);
+    return map;
+  }
+
+  AddressesCompanion toCompanion(bool nullToAbsent) {
+    return AddressesCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      label: Value(label),
+      street: Value(street),
+      apartment: Value(apartment),
+      city: Value(city),
+      isDefault: Value(isDefault),
+    );
+  }
+
+  factory AddressRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AddressRow(
+      id: serializer.fromJson<int>(json['id']),
+      userId: serializer.fromJson<int>(json['userId']),
+      label: serializer.fromJson<String>(json['label']),
+      street: serializer.fromJson<String>(json['street']),
+      apartment: serializer.fromJson<String>(json['apartment']),
+      city: serializer.fromJson<String>(json['city']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'userId': serializer.toJson<int>(userId),
+      'label': serializer.toJson<String>(label),
+      'street': serializer.toJson<String>(street),
+      'apartment': serializer.toJson<String>(apartment),
+      'city': serializer.toJson<String>(city),
+      'isDefault': serializer.toJson<bool>(isDefault),
+    };
+  }
+
+  AddressRow copyWith(
+          {int? id,
+          int? userId,
+          String? label,
+          String? street,
+          String? apartment,
+          String? city,
+          bool? isDefault}) =>
+      AddressRow(
+        id: id ?? this.id,
+        userId: userId ?? this.userId,
+        label: label ?? this.label,
+        street: street ?? this.street,
+        apartment: apartment ?? this.apartment,
+        city: city ?? this.city,
+        isDefault: isDefault ?? this.isDefault,
+      );
+  AddressRow copyWithCompanion(AddressesCompanion data) {
+    return AddressRow(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      label: data.label.present ? data.label.value : this.label,
+      street: data.street.present ? data.street.value : this.street,
+      apartment: data.apartment.present ? data.apartment.value : this.apartment,
+      city: data.city.present ? data.city.value : this.city,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AddressRow(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('label: $label, ')
+          ..write('street: $street, ')
+          ..write('apartment: $apartment, ')
+          ..write('city: $city, ')
+          ..write('isDefault: $isDefault')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, userId, label, street, apartment, city, isDefault);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AddressRow &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.label == this.label &&
+          other.street == this.street &&
+          other.apartment == this.apartment &&
+          other.city == this.city &&
+          other.isDefault == this.isDefault);
+}
+
+class AddressesCompanion extends UpdateCompanion<AddressRow> {
+  final Value<int> id;
+  final Value<int> userId;
+  final Value<String> label;
+  final Value<String> street;
+  final Value<String> apartment;
+  final Value<String> city;
+  final Value<bool> isDefault;
+  const AddressesCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.label = const Value.absent(),
+    this.street = const Value.absent(),
+    this.apartment = const Value.absent(),
+    this.city = const Value.absent(),
+    this.isDefault = const Value.absent(),
+  });
+  AddressesCompanion.insert({
+    this.id = const Value.absent(),
+    required int userId,
+    required String label,
+    required String street,
+    this.apartment = const Value.absent(),
+    required String city,
+    this.isDefault = const Value.absent(),
+  })  : userId = Value(userId),
+        label = Value(label),
+        street = Value(street),
+        city = Value(city);
+  static Insertable<AddressRow> custom({
+    Expression<int>? id,
+    Expression<int>? userId,
+    Expression<String>? label,
+    Expression<String>? street,
+    Expression<String>? apartment,
+    Expression<String>? city,
+    Expression<bool>? isDefault,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (label != null) 'label': label,
+      if (street != null) 'street': street,
+      if (apartment != null) 'apartment': apartment,
+      if (city != null) 'city': city,
+      if (isDefault != null) 'is_default': isDefault,
+    });
+  }
+
+  AddressesCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? userId,
+      Value<String>? label,
+      Value<String>? street,
+      Value<String>? apartment,
+      Value<String>? city,
+      Value<bool>? isDefault}) {
+    return AddressesCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      label: label ?? this.label,
+      street: street ?? this.street,
+      apartment: apartment ?? this.apartment,
+      city: city ?? this.city,
+      isDefault: isDefault ?? this.isDefault,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (street.present) {
+      map['street'] = Variable<String>(street.value);
+    }
+    if (apartment.present) {
+      map['apartment'] = Variable<String>(apartment.value);
+    }
+    if (city.present) {
+      map['city'] = Variable<String>(city.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AddressesCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('label: $label, ')
+          ..write('street: $street, ')
+          ..write('apartment: $apartment, ')
+          ..write('city: $city, ')
+          ..write('isDefault: $isDefault')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1513,12 +1883,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ProductsTable products = $ProductsTable(this);
   late final $OrdersTable orders = $OrdersTable(this);
   late final $CartItemsTable cartItems = $CartItemsTable(this);
+  late final $AddressesTable addresses = $AddressesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [users, products, orders, cartItems];
+      [users, products, orders, cartItems, addresses];
 }
 
 typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
@@ -2276,6 +2647,195 @@ typedef $$CartItemsTableProcessedTableManager = ProcessedTableManager<
     (CartItemRow, BaseReferences<_$AppDatabase, $CartItemsTable, CartItemRow>),
     CartItemRow,
     PrefetchHooks Function()>;
+typedef $$AddressesTableCreateCompanionBuilder = AddressesCompanion Function({
+  Value<int> id,
+  required int userId,
+  required String label,
+  required String street,
+  Value<String> apartment,
+  required String city,
+  Value<bool> isDefault,
+});
+typedef $$AddressesTableUpdateCompanionBuilder = AddressesCompanion Function({
+  Value<int> id,
+  Value<int> userId,
+  Value<String> label,
+  Value<String> street,
+  Value<String> apartment,
+  Value<String> city,
+  Value<bool> isDefault,
+});
+
+class $$AddressesTableFilterComposer
+    extends Composer<_$AppDatabase, $AddressesTable> {
+  $$AddressesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get label => $composableBuilder(
+      column: $table.label, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get street => $composableBuilder(
+      column: $table.street, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get apartment => $composableBuilder(
+      column: $table.apartment, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get city => $composableBuilder(
+      column: $table.city, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+      column: $table.isDefault, builder: (column) => ColumnFilters(column));
+}
+
+class $$AddressesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AddressesTable> {
+  $$AddressesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get label => $composableBuilder(
+      column: $table.label, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get street => $composableBuilder(
+      column: $table.street, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get apartment => $composableBuilder(
+      column: $table.apartment, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get city => $composableBuilder(
+      column: $table.city, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+      column: $table.isDefault, builder: (column) => ColumnOrderings(column));
+}
+
+class $$AddressesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AddressesTable> {
+  $$AddressesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get street =>
+      $composableBuilder(column: $table.street, builder: (column) => column);
+
+  GeneratedColumn<String> get apartment =>
+      $composableBuilder(column: $table.apartment, builder: (column) => column);
+
+  GeneratedColumn<String> get city =>
+      $composableBuilder(column: $table.city, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+}
+
+class $$AddressesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $AddressesTable,
+    AddressRow,
+    $$AddressesTableFilterComposer,
+    $$AddressesTableOrderingComposer,
+    $$AddressesTableAnnotationComposer,
+    $$AddressesTableCreateCompanionBuilder,
+    $$AddressesTableUpdateCompanionBuilder,
+    (AddressRow, BaseReferences<_$AppDatabase, $AddressesTable, AddressRow>),
+    AddressRow,
+    PrefetchHooks Function()> {
+  $$AddressesTableTableManager(_$AppDatabase db, $AddressesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AddressesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AddressesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AddressesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> userId = const Value.absent(),
+            Value<String> label = const Value.absent(),
+            Value<String> street = const Value.absent(),
+            Value<String> apartment = const Value.absent(),
+            Value<String> city = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+          }) =>
+              AddressesCompanion(
+            id: id,
+            userId: userId,
+            label: label,
+            street: street,
+            apartment: apartment,
+            city: city,
+            isDefault: isDefault,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int userId,
+            required String label,
+            required String street,
+            Value<String> apartment = const Value.absent(),
+            required String city,
+            Value<bool> isDefault = const Value.absent(),
+          }) =>
+              AddressesCompanion.insert(
+            id: id,
+            userId: userId,
+            label: label,
+            street: street,
+            apartment: apartment,
+            city: city,
+            isDefault: isDefault,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$AddressesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $AddressesTable,
+    AddressRow,
+    $$AddressesTableFilterComposer,
+    $$AddressesTableOrderingComposer,
+    $$AddressesTableAnnotationComposer,
+    $$AddressesTableCreateCompanionBuilder,
+    $$AddressesTableUpdateCompanionBuilder,
+    (AddressRow, BaseReferences<_$AppDatabase, $AddressesTable, AddressRow>),
+    AddressRow,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2288,4 +2848,6 @@ class $AppDatabaseManager {
       $$OrdersTableTableManager(_db, _db.orders);
   $$CartItemsTableTableManager get cartItems =>
       $$CartItemsTableTableManager(_db, _db.cartItems);
+  $$AddressesTableTableManager get addresses =>
+      $$AddressesTableTableManager(_db, _db.addresses);
 }

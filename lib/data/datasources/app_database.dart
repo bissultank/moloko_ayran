@@ -1,4 +1,4 @@
-// Слой: data | Назначение: Drift AppDatabase — Users, Products, Orders, CartItems
+// Слой: data | Назначение: Drift AppDatabase — Users, Products, Orders, CartItems, Addresses
 
 import 'dart:io';
 
@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../domain/entities/user.dart';
+import '../models/address_model.dart';
 import '../models/cart_model.dart';
 import '../models/order_model.dart';
 import '../models/product_model.dart';
@@ -15,7 +16,7 @@ import '../models/user_model.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Users, Products, Orders, CartItems])
+@DriftDatabase(tables: [Users, Products, Orders, CartItems, Addresses])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
@@ -23,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase get instance => _instance ??= AppDatabase();
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -32,6 +33,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) await m.createTable(products);
           if (from < 3) await m.createTable(orders);
           if (from < 4) await m.createTable(cartItems);
+          if (from < 5) await m.createTable(addresses);
         },
       );
 }

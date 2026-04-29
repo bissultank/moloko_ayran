@@ -17,6 +17,7 @@ class AppConstants {
   static const String routeCart = 'cart';
   static const String routeOrders = 'orders';
   static const String routeAnalytics = 'analytics';
+  static const String routeProfile = '/profile';
 
   // UI
   static const String appName = 'MolokoAyran';

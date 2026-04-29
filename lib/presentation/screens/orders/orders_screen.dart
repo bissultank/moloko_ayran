@@ -192,7 +192,6 @@ class _OrderCard extends StatelessWidget {
               ],
             ),
             const Divider(height: 16),
-            // Список товаров
             ...order.items.map((item) => Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Row(
@@ -254,53 +253,55 @@ class _OrderCard extends StatelessWidget {
     );
   }
 
-  void _confirmCancel(BuildContext context) {
-    showDialog(
+  void _confirmCancel(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Отменить заказ?'),
         content: Text('Заказ #${order.id} будет отменён.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Нет'),
           ),
           FilledButton(
-            onPressed: () {
-              context
-                  .read<OrderBloc>()
-                  .add(OrderUpdateStatus(order.id, OrderStatus.cancelled));
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: const Text('Отменить'),
           ),
         ],
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      context
+          .read<OrderBloc>()
+          .add(OrderUpdateStatus(order.id, OrderStatus.cancelled));
+    }
   }
 
-  void _confirmDelete(BuildContext context) {
-    showDialog(
+  void _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Удалить заказ?'),
         content: Text('Заказ #${order.id} будет удалён из истории.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Отмена'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () {
-              context.read<OrderBloc>().add(OrderDelete(order.id));
-              Navigator.of(context).pop();
-            },
+                backgroundColor: Theme.of(dialogContext).colorScheme.error),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: const Text('Удалить'),
           ),
         ],
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      context.read<OrderBloc>().add(OrderDelete(order.id));
+    }
   }
 }
