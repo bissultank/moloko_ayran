@@ -6,9 +6,12 @@ class AppConstants {
   static const String keyUserEmail = 'user_email';
   static const String kSessionKey = 'session_user_id';
   static const String kUserEmailKey = 'session_user_email';
+  static const String kThemeKey = 'theme_mode';
+  static const String kOnboardingCompletedKey = 'onboarding_completed';
 
   // Route names
   static const String routeSplash = '/';
+  static const String routeOnboarding = '/onboarding';
   static const String routeLogin = '/login';
   static const String routeRegister = '/register';
   static const String routeMain = '/main';

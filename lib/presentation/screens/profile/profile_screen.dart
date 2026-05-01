@@ -9,6 +9,7 @@ import '../../../domain/entities/order.dart';
 import '../../blocs/address/address_bloc.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/order/order_bloc.dart';
+import '../../blocs/theme/theme_bloc.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -49,7 +50,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Профиль'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/${AppConstants.routeCatalog}');
+            }
+          },
         ),
       ),
       body: ListView(
@@ -116,6 +123,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               }
               return const SizedBox.shrink();
+            },
+          ),
+          const SizedBox(height: 24),
+
+          // Тема
+          Text('Внешний вид',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          BlocBuilder<ThemeBloc, ThemeState>(
+            builder: (context, state) {
+              return Card(
+                child: Column(
+                  children: [
+                    _ThemeOption(
+                      icon: Icons.brightness_auto_outlined,
+                      label: 'Системная',
+                      mode: ThemeMode.system,
+                      selected: state.mode == ThemeMode.system,
+                    ),
+                    const Divider(height: 1),
+                    _ThemeOption(
+                      icon: Icons.light_mode_outlined,
+                      label: 'Светлая',
+                      mode: ThemeMode.light,
+                      selected: state.mode == ThemeMode.light,
+                    ),
+                    const Divider(height: 1),
+                    _ThemeOption(
+                      icon: Icons.dark_mode_outlined,
+                      label: 'Тёмная',
+                      mode: ThemeMode.dark,
+                      selected: state.mode == ThemeMode.dark,
+                    ),
+                  ],
+                ),
+              );
             },
           ),
           const SizedBox(height: 24),
@@ -199,30 +243,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _confirmLogout(BuildContext context) {
-    showDialog(
+  void _confirmLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Выйти из аккаунта?'),
         content: const Text('Вы будете перенаправлены на экран входа.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Отмена'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () async {
-              context.read<AuthBloc>().add(const AuthLogoutRequested());
-              Navigator.of(context).pop();
-              context.go(AppConstants.routeLogin);
-            },
+                backgroundColor: Theme.of(dialogContext).colorScheme.error),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: const Text('Выйти'),
           ),
         ],
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      context.read<AuthBloc>().add(const AuthLogoutRequested());
+      context.go(AppConstants.routeLogin);
+    }
   }
 }
 
@@ -247,6 +292,31 @@ class _StatItem extends StatelessWidget {
             style: theme.textTheme.bodySmall
                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
       ],
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  const _ThemeOption({
+    required this.icon,
+    required this.label,
+    required this.mode,
+    required this.selected,
+  });
+  final IconData icon;
+  final String label;
+  final ThemeMode mode;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ListTile(
+      leading: Icon(icon, color: theme.colorScheme.primary),
+      title: Text(label),
+      trailing:
+          selected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+      onTap: () => context.read<ThemeBloc>().add(ThemeChange(mode)),
     );
   }
 }

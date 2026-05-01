@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../presentation/screens/splash_screen.dart';
+import '../../presentation/screens/onboarding/onboarding_screen.dart';
 import '../../presentation/screens/login_screen.dart';
 import '../../presentation/screens/register_screen.dart';
 import '../../presentation/screens/main_screen.dart';
@@ -19,6 +20,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppConstants.routeSplash,
       builder: (context, state) => const SplashScreen(),
+    ),
+    GoRoute(
+      path: AppConstants.routeOnboarding,
+      builder: (context, state) => const OnboardingScreen(),
     ),
     GoRoute(
       path: AppConstants.routeLogin,

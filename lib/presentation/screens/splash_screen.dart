@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../blocs/auth/auth_bloc.dart';
@@ -13,17 +14,38 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _onboardingChecked = false;
+
   @override
   void initState() {
     super.initState();
-    // Запускаем проверку сессии через AuthBloc
-    context.read<AuthBloc>().add(const AuthCheckSessionRequested());
+    _checkOnboardingThenSession();
+  }
+
+  Future<void> _checkOnboardingThenSession() async {
+    await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final completed =
+        prefs.getBool(AppConstants.kOnboardingCompletedKey) ?? false;
+
+    if (!completed) {
+      if (mounted) context.go(AppConstants.routeOnboarding);
+      return;
+    }
+
+    setState(() => _onboardingChecked = true);
+    if (mounted) {
+      context.read<AuthBloc>().add(const AuthCheckSessionRequested());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
+        if (!_onboardingChecked) return;
         if (state is AuthAuthenticated) {
           context.go('/${AppConstants.routeCatalog}');
         } else if (state is AuthUnauthenticated || state is AuthError) {

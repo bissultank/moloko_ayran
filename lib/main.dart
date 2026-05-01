@@ -23,6 +23,7 @@ import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/cart/cart_bloc.dart';
 import 'presentation/blocs/order/order_bloc.dart';
 import 'presentation/blocs/product/product_bloc.dart';
+import 'presentation/blocs/theme/theme_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +62,9 @@ class MolokoAyranApp extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
+        BlocProvider(
+          create: (_) => ThemeBloc()..add(const ThemeLoad()),
+        ),
         BlocProvider(
           create: (_) => AuthBloc(
             loginUseCase: LoginUseCase(authRepository),
@@ -102,20 +106,25 @@ class MolokoAyranApp extends StatelessWidget {
           ),
         ),
       ],
-      child: MaterialApp.router(
-        title: 'MolokoAyran',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFF2E7D32),
-          useMaterial3: true,
-          brightness: Brightness.light,
-        ),
-        darkTheme: ThemeData(
-          colorSchemeSeed: const Color(0xFF2E7D32),
-          useMaterial3: true,
-          brightness: Brightness.dark,
-        ),
-        routerConfig: appRouter,
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, themeState) {
+          return MaterialApp.router(
+            title: 'MolokoAyran',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeState.mode,
+            theme: ThemeData(
+              colorSchemeSeed: const Color(0xFF2E7D32),
+              useMaterial3: true,
+              brightness: Brightness.light,
+            ),
+            darkTheme: ThemeData(
+              colorSchemeSeed: const Color(0xFF2E7D32),
+              useMaterial3: true,
+              brightness: Brightness.dark,
+            ),
+            routerConfig: appRouter,
+          );
+        },
       ),
     );
   }
