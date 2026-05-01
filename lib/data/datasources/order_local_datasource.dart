@@ -38,6 +38,8 @@ class OrderLocalDatasource {
             totalPrice: order.totalPrice,
             status: order.status.name,
             createdAt: order.createdAt,
+            addressLabel: Value(order.addressLabel),
+            addressFull: Value(order.addressFull),
           ),
         );
   }
@@ -64,6 +66,8 @@ class OrderLocalDatasource {
       totalPrice: row.totalPrice,
       status: OrderStatus.fromString(row.status),
       createdAt: row.createdAt,
+      addressLabel: row.addressLabel,
+      addressFull: row.addressFull,
     );
   }
 }

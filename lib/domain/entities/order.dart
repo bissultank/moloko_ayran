@@ -19,7 +19,6 @@ enum OrderStatus {
   }
 }
 
-// Один товар внутри заказа (хранится в JSON в БД)
 class OrderItem extends Equatable {
   const OrderItem({
     required this.productId,
@@ -70,6 +69,8 @@ class OrderEntity extends Equatable {
     required this.totalPrice,
     required this.status,
     required this.createdAt,
+    this.addressLabel = '',
+    this.addressFull = '',
   });
 
   final int id;
@@ -78,6 +79,8 @@ class OrderEntity extends Equatable {
   final double totalPrice;
   final OrderStatus status;
   final DateTime createdAt;
+  final String addressLabel;
+  final String addressFull;
 
   OrderEntity copyWith({
     int? id,
@@ -86,6 +89,8 @@ class OrderEntity extends Equatable {
     double? totalPrice,
     OrderStatus? status,
     DateTime? createdAt,
+    String? addressLabel,
+    String? addressFull,
   }) {
     return OrderEntity(
       id: id ?? this.id,
@@ -94,9 +99,20 @@ class OrderEntity extends Equatable {
       totalPrice: totalPrice ?? this.totalPrice,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      addressLabel: addressLabel ?? this.addressLabel,
+      addressFull: addressFull ?? this.addressFull,
     );
   }
 
   @override
-  List<Object?> get props => [id, userId, items, totalPrice, status, createdAt];
+  List<Object?> get props => [
+        id,
+        userId,
+        items,
+        totalPrice,
+        status,
+        createdAt,
+        addressLabel,
+        addressFull,
+      ];
 }

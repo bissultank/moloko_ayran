@@ -6,8 +6,10 @@ import 'package:drift/drift.dart';
 class Orders extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get userId => integer()();
-  TextColumn get itemsJson => text()(); // JSON-строка со списком товаров
+  TextColumn get itemsJson => text()();
   RealColumn get totalPrice => real()();
-  TextColumn get status => text()(); // enum как строка
+  TextColumn get status => text()();
   DateTimeColumn get createdAt => dateTime()();
+  TextColumn get addressLabel => text().withDefault(const Constant(''))();
+  TextColumn get addressFull => text().withDefault(const Constant(''))();
 }

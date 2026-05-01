@@ -9,6 +9,8 @@ import '../../../domain/entities/order.dart';
 import '../../blocs/address/address_bloc.dart';
 import '../../blocs/cart/cart_bloc.dart';
 import '../../blocs/order/order_bloc.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/product_image.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -49,8 +51,7 @@ class _CartScreenState extends State<CartScreen> {
               return IconButton(
                 icon: const Icon(Icons.delete_outline),
                 tooltip: 'Очистить корзину',
-                onPressed: () =>
-                    context.read<CartBloc>().add(const CartClear()),
+                onPressed: () => _confirmClear(context),
               );
             },
           ),
@@ -59,8 +60,13 @@ class _CartScreenState extends State<CartScreen> {
       body: BlocBuilder<CartBloc, CartState>(
         builder: (context, cartState) {
           if (cartState.isEmpty) {
-            return _EmptyCart(
-                onShop: () => context.go('/${AppConstants.routeCatalog}'));
+            return EmptyState(
+              icon: Icons.shopping_cart_outlined,
+              title: 'Корзина пустая',
+              subtitle: 'Добавьте натуральные продукты от фермеров',
+              actionLabel: 'Перейти в каталог',
+              onAction: () => context.go('/${AppConstants.routeCatalog}'),
+            );
           }
 
           final lines = cartState.lines;
@@ -71,29 +77,39 @@ class _CartScreenState extends State<CartScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    // Селектор адреса
                     BlocBuilder<AddressBloc, AddressState>(
                       builder: (context, addrState) {
                         if (addrState is AddressLoaded) {
-                          // Если выбранного нет — берём default
                           _selectedAddress ??= addrState.defaultAddress;
                           return _AddressSelector(
                             addresses: addrState.addresses,
                             selected: _selectedAddress,
                             onSelect: (a) =>
                                 setState(() => _selectedAddress = a),
-                            userId: _userId,
                           );
                         }
                         return const SizedBox.shrink();
                       },
                     ),
                     const SizedBox(height: 16),
-                    Text('Товары',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600)),
+                    Row(
+                      children: [
+                        Text('Товары',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600)),
+                        const Spacer(),
+                        Text('${cartState.totalItems} шт.',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant)),
+                      ],
+                    ),
                     const SizedBox(height: 8),
                     ...lines.map((line) => _CartLineCard(line: line)),
                   ],
@@ -111,40 +127,31 @@ class _CartScreenState extends State<CartScreen> {
       ),
     );
   }
-}
 
-class _EmptyCart extends StatelessWidget {
-  const _EmptyCart({required this.onShop});
-  final VoidCallback onShop;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.shopping_cart_outlined,
-                size: 96, color: theme.colorScheme.outline),
-            const SizedBox(height: 16),
-            Text('Корзина пустая', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text('Добавьте продукты из каталога',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: onShop,
-              icon: const Icon(Icons.storefront_outlined),
-              label: const Text('Перейти в каталог'),
-            ),
-          ],
-        ),
+  void _confirmClear(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Очистить корзину?'),
+        content: const Text('Все товары будут удалены из корзины.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(dialogContext).colorScheme.error),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Очистить'),
+          ),
+        ],
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      context.read<CartBloc>().add(const CartClear());
+    }
   }
 }
 
@@ -153,12 +160,10 @@ class _AddressSelector extends StatelessWidget {
     required this.addresses,
     required this.selected,
     required this.onSelect,
-    required this.userId,
   });
   final List<Address> addresses;
   final Address? selected;
   final ValueChanged<Address> onSelect;
-  final int? userId;
 
   @override
   Widget build(BuildContext context) {
@@ -171,8 +176,15 @@ class _AddressSelector extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.location_on_outlined,
-                  color: theme.colorScheme.primary),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.location_on_outlined,
+                    color: theme.colorScheme.primary),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -205,9 +217,13 @@ class _AddressSelector extends StatelessWidget {
   void _showPicker(BuildContext context) {
     if (addresses.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Сначала добавьте адрес в профиле'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: const Text('Сначала добавьте адрес в профиле'),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Профиль',
+            onPressed: () => context.push(AppConstants.routeProfile),
+          ),
         ),
       );
       return;
@@ -259,16 +275,7 @@ class _CartLineCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(Icons.water_drop_outlined,
-                  color: theme.colorScheme.primary),
-            ),
+            ProductImage(category: line.product.category, size: 56),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -284,7 +291,7 @@ class _CartLineCard extends StatelessWidget {
                       '${line.product.price.toStringAsFixed(0)} ₸/${line.product.unit}',
                       style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant)),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text('${line.total.toStringAsFixed(0)} ₸',
                       style: theme.textTheme.titleSmall?.copyWith(
                           color: theme.colorScheme.primary,
@@ -295,7 +302,7 @@ class _CartLineCard extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 border: Border.all(color: theme.colorScheme.outline),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
@@ -351,9 +358,9 @@ class _CheckoutPanel extends StatelessWidget {
           color: theme.colorScheme.surface,
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, -2)),
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 12,
+                offset: const Offset(0, -4)),
           ],
         ),
         child: Row(
@@ -363,7 +370,7 @@ class _CheckoutPanel extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Итого ($totalItems товаров)',
+                  Text('Итого',
                       style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant)),
                   Text('${totalPrice.toStringAsFixed(0)} ₸',
@@ -375,7 +382,7 @@ class _CheckoutPanel extends StatelessWidget {
             ),
             FilledButton.icon(
               style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 52),
+                  minimumSize: const Size(0, 56),
                   padding: const EdgeInsets.symmetric(horizontal: 24)),
               onPressed: canCheckout ? () => _placeOrder(context) : null,
               icon: const Icon(Icons.check_circle_outline),
@@ -409,6 +416,8 @@ class _CheckoutPanel extends StatelessWidget {
       totalPrice: cartState.totalPrice,
       status: OrderStatus.pending,
       createdAt: DateTime.now(),
+      addressLabel: selectedAddress!.label,
+      addressFull: selectedAddress!.full,
     );
 
     context.read<OrderBloc>().add(OrderCreate(order));
@@ -416,8 +425,22 @@ class _CheckoutPanel extends StatelessWidget {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Заказ оформлен на адрес ${selectedAddress!.label}'),
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text('Заказ оформлен на ${selectedAddress!.label}'),
+            ),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'Заказы',
+          textColor: Colors.white,
+          onPressed: () => context.go('/${AppConstants.routeOrders}'),
+        ),
       ),
     );
   }

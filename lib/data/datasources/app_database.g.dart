@@ -755,9 +755,33 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _addressLabelMeta =
+      const VerificationMeta('addressLabel');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, userId, itemsJson, totalPrice, status, createdAt];
+  late final GeneratedColumn<String> addressLabel = GeneratedColumn<String>(
+      'address_label', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _addressFullMeta =
+      const VerificationMeta('addressFull');
+  @override
+  late final GeneratedColumn<String> addressFull = GeneratedColumn<String>(
+      'address_full', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        userId,
+        itemsJson,
+        totalPrice,
+        status,
+        createdAt,
+        addressLabel,
+        addressFull
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -803,6 +827,18 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('address_label')) {
+      context.handle(
+          _addressLabelMeta,
+          addressLabel.isAcceptableOrUnknown(
+              data['address_label']!, _addressLabelMeta));
+    }
+    if (data.containsKey('address_full')) {
+      context.handle(
+          _addressFullMeta,
+          addressFull.isAcceptableOrUnknown(
+              data['address_full']!, _addressFullMeta));
+    }
     return context;
   }
 
@@ -824,6 +860,10 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
           .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      addressLabel: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}address_label'])!,
+      addressFull: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}address_full'])!,
     );
   }
 
@@ -840,13 +880,17 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
   final double totalPrice;
   final String status;
   final DateTime createdAt;
+  final String addressLabel;
+  final String addressFull;
   const OrderRow(
       {required this.id,
       required this.userId,
       required this.itemsJson,
       required this.totalPrice,
       required this.status,
-      required this.createdAt});
+      required this.createdAt,
+      required this.addressLabel,
+      required this.addressFull});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -856,6 +900,8 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     map['total_price'] = Variable<double>(totalPrice);
     map['status'] = Variable<String>(status);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['address_label'] = Variable<String>(addressLabel);
+    map['address_full'] = Variable<String>(addressFull);
     return map;
   }
 
@@ -867,6 +913,8 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       totalPrice: Value(totalPrice),
       status: Value(status),
       createdAt: Value(createdAt),
+      addressLabel: Value(addressLabel),
+      addressFull: Value(addressFull),
     );
   }
 
@@ -880,6 +928,8 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       totalPrice: serializer.fromJson<double>(json['totalPrice']),
       status: serializer.fromJson<String>(json['status']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      addressLabel: serializer.fromJson<String>(json['addressLabel']),
+      addressFull: serializer.fromJson<String>(json['addressFull']),
     );
   }
   @override
@@ -892,6 +942,8 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       'totalPrice': serializer.toJson<double>(totalPrice),
       'status': serializer.toJson<String>(status),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'addressLabel': serializer.toJson<String>(addressLabel),
+      'addressFull': serializer.toJson<String>(addressFull),
     };
   }
 
@@ -901,7 +953,9 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           String? itemsJson,
           double? totalPrice,
           String? status,
-          DateTime? createdAt}) =>
+          DateTime? createdAt,
+          String? addressLabel,
+          String? addressFull}) =>
       OrderRow(
         id: id ?? this.id,
         userId: userId ?? this.userId,
@@ -909,6 +963,8 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
         totalPrice: totalPrice ?? this.totalPrice,
         status: status ?? this.status,
         createdAt: createdAt ?? this.createdAt,
+        addressLabel: addressLabel ?? this.addressLabel,
+        addressFull: addressFull ?? this.addressFull,
       );
   OrderRow copyWithCompanion(OrdersCompanion data) {
     return OrderRow(
@@ -919,6 +975,11 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           data.totalPrice.present ? data.totalPrice.value : this.totalPrice,
       status: data.status.present ? data.status.value : this.status,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      addressLabel: data.addressLabel.present
+          ? data.addressLabel.value
+          : this.addressLabel,
+      addressFull:
+          data.addressFull.present ? data.addressFull.value : this.addressFull,
     );
   }
 
@@ -930,14 +991,16 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           ..write('itemsJson: $itemsJson, ')
           ..write('totalPrice: $totalPrice, ')
           ..write('status: $status, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('addressLabel: $addressLabel, ')
+          ..write('addressFull: $addressFull')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, userId, itemsJson, totalPrice, status, createdAt);
+  int get hashCode => Object.hash(id, userId, itemsJson, totalPrice, status,
+      createdAt, addressLabel, addressFull);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -947,7 +1010,9 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           other.itemsJson == this.itemsJson &&
           other.totalPrice == this.totalPrice &&
           other.status == this.status &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.addressLabel == this.addressLabel &&
+          other.addressFull == this.addressFull);
 }
 
 class OrdersCompanion extends UpdateCompanion<OrderRow> {
@@ -957,6 +1022,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
   final Value<double> totalPrice;
   final Value<String> status;
   final Value<DateTime> createdAt;
+  final Value<String> addressLabel;
+  final Value<String> addressFull;
   const OrdersCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
@@ -964,6 +1031,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     this.totalPrice = const Value.absent(),
     this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.addressLabel = const Value.absent(),
+    this.addressFull = const Value.absent(),
   });
   OrdersCompanion.insert({
     this.id = const Value.absent(),
@@ -972,6 +1041,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     required double totalPrice,
     required String status,
     required DateTime createdAt,
+    this.addressLabel = const Value.absent(),
+    this.addressFull = const Value.absent(),
   })  : userId = Value(userId),
         itemsJson = Value(itemsJson),
         totalPrice = Value(totalPrice),
@@ -984,6 +1055,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     Expression<double>? totalPrice,
     Expression<String>? status,
     Expression<DateTime>? createdAt,
+    Expression<String>? addressLabel,
+    Expression<String>? addressFull,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -992,6 +1065,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       if (totalPrice != null) 'total_price': totalPrice,
       if (status != null) 'status': status,
       if (createdAt != null) 'created_at': createdAt,
+      if (addressLabel != null) 'address_label': addressLabel,
+      if (addressFull != null) 'address_full': addressFull,
     });
   }
 
@@ -1001,7 +1076,9 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       Value<String>? itemsJson,
       Value<double>? totalPrice,
       Value<String>? status,
-      Value<DateTime>? createdAt}) {
+      Value<DateTime>? createdAt,
+      Value<String>? addressLabel,
+      Value<String>? addressFull}) {
     return OrdersCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
@@ -1009,6 +1086,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       totalPrice: totalPrice ?? this.totalPrice,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      addressLabel: addressLabel ?? this.addressLabel,
+      addressFull: addressFull ?? this.addressFull,
     );
   }
 
@@ -1033,6 +1112,12 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (addressLabel.present) {
+      map['address_label'] = Variable<String>(addressLabel.value);
+    }
+    if (addressFull.present) {
+      map['address_full'] = Variable<String>(addressFull.value);
+    }
     return map;
   }
 
@@ -1044,7 +1129,9 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
           ..write('itemsJson: $itemsJson, ')
           ..write('totalPrice: $totalPrice, ')
           ..write('status: $status, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('addressLabel: $addressLabel, ')
+          ..write('addressFull: $addressFull')
           ..write(')'))
         .toString();
   }
@@ -2261,6 +2348,8 @@ typedef $$OrdersTableCreateCompanionBuilder = OrdersCompanion Function({
   required double totalPrice,
   required String status,
   required DateTime createdAt,
+  Value<String> addressLabel,
+  Value<String> addressFull,
 });
 typedef $$OrdersTableUpdateCompanionBuilder = OrdersCompanion Function({
   Value<int> id,
@@ -2269,6 +2358,8 @@ typedef $$OrdersTableUpdateCompanionBuilder = OrdersCompanion Function({
   Value<double> totalPrice,
   Value<String> status,
   Value<DateTime> createdAt,
+  Value<String> addressLabel,
+  Value<String> addressFull,
 });
 
 class $$OrdersTableFilterComposer
@@ -2297,6 +2388,12 @@ class $$OrdersTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get addressLabel => $composableBuilder(
+      column: $table.addressLabel, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get addressFull => $composableBuilder(
+      column: $table.addressFull, builder: (column) => ColumnFilters(column));
 }
 
 class $$OrdersTableOrderingComposer
@@ -2325,6 +2422,13 @@ class $$OrdersTableOrderingComposer
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get addressLabel => $composableBuilder(
+      column: $table.addressLabel,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get addressFull => $composableBuilder(
+      column: $table.addressFull, builder: (column) => ColumnOrderings(column));
 }
 
 class $$OrdersTableAnnotationComposer
@@ -2353,6 +2457,12 @@ class $$OrdersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get addressLabel => $composableBuilder(
+      column: $table.addressLabel, builder: (column) => column);
+
+  GeneratedColumn<String> get addressFull => $composableBuilder(
+      column: $table.addressFull, builder: (column) => column);
 }
 
 class $$OrdersTableTableManager extends RootTableManager<
@@ -2384,6 +2494,8 @@ class $$OrdersTableTableManager extends RootTableManager<
             Value<double> totalPrice = const Value.absent(),
             Value<String> status = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
+            Value<String> addressLabel = const Value.absent(),
+            Value<String> addressFull = const Value.absent(),
           }) =>
               OrdersCompanion(
             id: id,
@@ -2392,6 +2504,8 @@ class $$OrdersTableTableManager extends RootTableManager<
             totalPrice: totalPrice,
             status: status,
             createdAt: createdAt,
+            addressLabel: addressLabel,
+            addressFull: addressFull,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2400,6 +2514,8 @@ class $$OrdersTableTableManager extends RootTableManager<
             required double totalPrice,
             required String status,
             required DateTime createdAt,
+            Value<String> addressLabel = const Value.absent(),
+            Value<String> addressFull = const Value.absent(),
           }) =>
               OrdersCompanion.insert(
             id: id,
@@ -2408,6 +2524,8 @@ class $$OrdersTableTableManager extends RootTableManager<
             totalPrice: totalPrice,
             status: status,
             createdAt: createdAt,
+            addressLabel: addressLabel,
+            addressFull: addressFull,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

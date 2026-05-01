@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../domain/entities/product.dart';
 import '../../blocs/cart/cart_bloc.dart';
 import '../../blocs/product/product_bloc.dart';
+import '../../widgets/product_image.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -45,34 +47,46 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         final theme = Theme.of(context);
 
         return Scaffold(
+          extendBodyBehindAppBar: true,
           appBar: AppBar(
-            title: const Text('Продукт'),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.all(8),
+              child: CircleAvatar(
+                backgroundColor: Colors.white.withOpacity(0.85),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                  onPressed: () => context.pop(),
+                ),
+              ),
             ),
           ),
           body: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  height: 220,
-                  color: theme.colorScheme.primaryContainer,
-                  child: Icon(Icons.water_drop_rounded,
-                      size: 80, color: theme.colorScheme.primary),
-                ),
+                ProductHero(category: p.category),
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Chip(
-                        label: Text(p.category.label),
-                        backgroundColor: theme.colorScheme.secondaryContainer,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          p.category.label,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w600),
+                        ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Text(p.name,
                           style: theme.textTheme.headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold)),
@@ -89,16 +103,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      Text('Характеристики',
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 12),
-                      _InfoRow(
-                          label: 'Цена за ${p.unit}',
-                          value: '${p.price.toStringAsFixed(0)} ₸'),
-                      _InfoRow(label: 'Категория', value: p.category.label),
-                      _InfoRow(label: 'Ферма', value: p.farmer),
-                      const SizedBox(height: 32),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              _InfoRow(
+                                  icon: Icons.local_offer_outlined,
+                                  label: 'Цена за ${p.unit}',
+                                  value: '${p.price.toStringAsFixed(0)} ₸'),
+                              const Divider(height: 24),
+                              _InfoRow(
+                                  icon: Icons.category_outlined,
+                                  label: 'Категория',
+                                  value: p.category.label),
+                              const Divider(height: 24),
+                              _InfoRow(
+                                  icon: Icons.scale_outlined,
+                                  label: 'Единица измерения',
+                                  value: p.unit),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 100),
                     ],
                   ),
                 ),
@@ -106,15 +134,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ),
           bottomNavigationBar: SafeArea(
-            child: Padding(
+            child: Container(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
-                  // Счётчик количества
                   Container(
                     decoration: BoxDecoration(
                       border: Border.all(color: theme.colorScheme.outline),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
@@ -124,9 +161,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ? () => setState(() => _quantity--)
                               : null,
                         ),
-                        Text('$_quantity',
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        SizedBox(
+                          width: 24,
+                          child: Text('$_quantity',
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold)),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: () => setState(() => _quantity++),
@@ -138,18 +179,37 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Expanded(
                     child: FilledButton.icon(
                       style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 52)),
+                          minimumSize: const Size(0, 56)),
                       onPressed: () {
                         context
                             .read<CartBloc>()
                             .add(CartAdd(p, quantity: _quantity));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                'Добавлено в корзину: $_quantity × ${p.name}'),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(Icons.check_circle,
+                                      color: Colors.white, size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                        '$_quantity × ${p.name} в корзине',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis),
+                                  ),
+                                ],
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                              action: SnackBarAction(
+                                label: 'Перейти',
+                                textColor: Colors.white,
+                                onPressed: () =>
+                                    context.go('/${AppConstants.routeCart}'),
+                              ),
+                            ),
+                          );
                         context.pop();
                       },
                       icon: const Icon(Icons.shopping_cart_outlined),
@@ -168,27 +228,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 }
 
 class _InfoRow extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
 
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow(
+      {required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(
-              child: Text(label,
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant))),
-          Text(value,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-        ],
-      ),
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: theme.colorScheme.primary),
+        const SizedBox(width: 12),
+        Expanded(
+            child: Text(label,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant))),
+        Text(value,
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600)),
+      ],
     );
   }
 }

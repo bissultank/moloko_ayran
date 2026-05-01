@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../domain/entities/order.dart';
 import '../../blocs/order/order_bloc.dart';
+import '../../widgets/empty_state.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -28,6 +30,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
     if (userId != null && mounted) {
       context.read<OrderBloc>().add(OrderLoadAll(userId));
     }
+  }
+
+  Future<void> _refresh() async {
+    await _loadOrders();
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 
   @override
@@ -79,29 +86,31 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (state is OrderError) {
-                  return Center(child: Text('Ошибка: ${state.message}'));
+                  return EmptyState(
+                    icon: Icons.error_outline,
+                    title: 'Ошибка',
+                    subtitle: state.message,
+                  );
                 }
                 if (state is OrderLoaded) {
                   if (state.orders.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.receipt_long_outlined,
-                              size: 96,
-                              color: Theme.of(context).colorScheme.outline),
-                          const SizedBox(height: 16),
-                          Text('Заказов пока нет',
-                              style: Theme.of(context).textTheme.titleMedium),
-                        ],
-                      ),
+                    return EmptyState(
+                      icon: Icons.receipt_long_outlined,
+                      title: 'Заказов пока нет',
+                      subtitle: 'Перейдите в каталог и оформите первый заказ',
+                      actionLabel: 'В каталог',
+                      onAction: () =>
+                          context.go('/${AppConstants.routeCatalog}'),
                     );
                   }
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: state.orders.length,
-                    itemBuilder: (context, index) =>
-                        _OrderCard(order: state.orders[index]),
+                  return RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: state.orders.length,
+                      itemBuilder: (context, index) =>
+                          _OrderCard(order: state.orders[index]),
+                    ),
                   );
                 }
                 return const SizedBox.shrink();
@@ -159,149 +168,75 @@ class _OrderCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text('Заказ #${order.id}',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600)),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(_statusIcon(), size: 14, color: statusColor),
-                      const SizedBox(width: 4),
-                      Text(order.status.label,
-                          style: theme.textTheme.labelSmall
-                              ?.copyWith(color: statusColor)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const Divider(height: 16),
-            ...order.items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    children: [
-                      Icon(Icons.fiber_manual_record,
-                          size: 6, color: theme.colorScheme.onSurfaceVariant),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text('${item.productName} × ${item.quantity}',
-                            style: theme.textTheme.bodyMedium),
-                      ),
-                      Text('${item.total.toStringAsFixed(0)} ₸',
-                          style: theme.textTheme.bodyMedium),
-                    ],
-                  ),
-                )),
-            const Divider(height: 16),
-            Row(
-              children: [
-                Icon(Icons.calendar_today_outlined,
-                    size: 14, color: theme.colorScheme.onSurfaceVariant),
-                const SizedBox(width: 4),
-                Text(
-                    '${order.createdAt.day.toString().padLeft(2, '0')}.${order.createdAt.month.toString().padLeft(2, '0')}.${order.createdAt.year}',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                const Spacer(),
-                Text('Итого: ${order.totalPrice.toStringAsFixed(0)} ₸',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                if (order.status == OrderStatus.pending) ...[
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/order/${order.id}'),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _confirmCancel(context),
-                      icon: const Icon(Icons.cancel_outlined, size: 18),
-                      label: const Text('Отменить'),
+                    child: Text('Заказ #${order.id}',
+                        style: theme.textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600)),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(_statusIcon(), size: 14, color: statusColor),
+                        const SizedBox(width: 4),
+                        Text(order.status.label,
+                            style: theme.textTheme.labelSmall
+                                ?.copyWith(color: statusColor)),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
                 ],
-                Expanded(
-                  child: TextButton.icon(
-                    onPressed: () => _confirmDelete(context),
-                    icon: const Icon(Icons.delete_outline, size: 18),
-                    label: const Text('Удалить'),
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 8),
+              Text('${order.items.length} ${_itemsWord(order.items.length)}',
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(Icons.calendar_today_outlined,
+                      size: 14, color: theme.colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Text(
+                      '${order.createdAt.day.toString().padLeft(2, '0')}.${order.createdAt.month.toString().padLeft(2, '0')}.${order.createdAt.year}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant)),
+                  const Spacer(),
+                  Text('${order.totalPrice.toStringAsFixed(0)} ₸',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary)),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _confirmCancel(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Отменить заказ?'),
-        content: Text('Заказ #${order.id} будет отменён.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Нет'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Отменить'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      context
-          .read<OrderBloc>()
-          .add(OrderUpdateStatus(order.id, OrderStatus.cancelled));
+  String _itemsWord(int count) {
+    if (count % 10 == 1 && count % 100 != 11) return 'товар';
+    if ((count % 10 >= 2 && count % 10 <= 4) &&
+        (count % 100 < 10 || count % 100 >= 20)) {
+      return 'товара';
     }
-  }
-
-  void _confirmDelete(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Удалить заказ?'),
-        content: Text('Заказ #${order.id} будет удалён из истории.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Отмена'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(dialogContext).colorScheme.error),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Удалить'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      context.read<OrderBloc>().add(OrderDelete(order.id));
-    }
+    return 'товаров';
   }
 }

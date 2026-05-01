@@ -11,6 +11,7 @@ import '../../presentation/screens/catalog/catalog_screen.dart';
 import '../../presentation/screens/catalog/product_detail_screen.dart';
 import '../../presentation/screens/cart/cart_screen.dart';
 import '../../presentation/screens/orders/orders_screen.dart';
+import '../../presentation/screens/orders/order_detail_screen.dart';
 import '../../presentation/screens/analytics/analytics_screen.dart';
 import '../../presentation/screens/profile/profile_screen.dart';
 
@@ -36,6 +37,13 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppConstants.routeProfile,
       builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: '/order/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id'] ?? '0';
+        return OrderDetailScreen(orderId: id);
+      },
     ),
     ShellRoute(
       builder: (context, state, child) => MainScreen(child: child),
