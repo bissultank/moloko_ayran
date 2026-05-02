@@ -7,7 +7,6 @@ import '../../domain/entities/product.dart';
 class ProductVisuals {
   ProductVisuals._();
 
-  /// Градиент для категории
   static LinearGradient gradient(ProductCategory category) {
     switch (category) {
       case ProductCategory.milk:
@@ -58,6 +57,12 @@ class ProductVisuals {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
+      case ProductCategory.kaymak:
+        return const LinearGradient(
+          colors: [Color(0xFFFFD180), Color(0xFFFFAB91)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
       case ProductCategory.other:
         return const LinearGradient(
           colors: [Color(0xFFA5D6A7), Color(0xFF66BB6A)],
@@ -67,31 +72,31 @@ class ProductVisuals {
     }
   }
 
-  /// Emoji для категории. Для "other" (курт/каймак) — белый круг.
   static String emoji(ProductCategory category) {
     switch (category) {
       case ProductCategory.milk:
         return '🥛';
       case ProductCategory.ayran:
-        return '🥛';
+        return '🍶';
       case ProductCategory.kefir:
-        return '🥛';
+        return '🍶';
       case ProductCategory.smetana:
         return '🥣';
       case ProductCategory.tvorog:
-        return '🧀';
+        return '🍚';
       case ProductCategory.butter:
         return '🧈';
       case ProductCategory.cheese:
         return '🧀';
       case ProductCategory.yogurt:
         return '🍦';
+      case ProductCategory.kaymak:
+        return '🥣';
       case ProductCategory.other:
         return '⚪';
     }
   }
 
-  /// Получить тип категории по строке (для заказа где хранится строкой)
   static ProductCategory categoryFromString(String value) {
     return ProductCategory.fromString(value);
   }

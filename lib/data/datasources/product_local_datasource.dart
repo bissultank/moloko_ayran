@@ -69,7 +69,6 @@ class ProductLocalDatasource {
     await (_db.delete(_db.products)..where((p) => p.id.equals(id))).go();
   }
 
-  // Сидинг — добавить продукты только если БД пустая
   Future<void> seedIfEmpty() async {
     final count = await (_db.selectOnly(_db.products)
           ..addColumns([_db.products.id.count()]))
@@ -158,7 +157,7 @@ class ProductLocalDatasource {
           farmer: 'Ферма Алатау'),
       ProductsCompanion.insert(
           name: 'Қаймақ домашний',
-          category: ProductCategory.other.name,
+          category: ProductCategory.kaymak.name,
           price: 950,
           unit: 'кг',
           farmer: 'Ферма Жайлау'),

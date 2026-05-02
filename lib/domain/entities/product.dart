@@ -11,6 +11,7 @@ enum ProductCategory {
   butter('Масло'),
   cheese('Сыр'),
   yogurt('Йогурт'),
+  kaymak('Қаймақ'),
   other('Другое');
 
   final String label;
@@ -40,7 +41,7 @@ class Product extends Equatable {
   final String name;
   final ProductCategory category;
   final double price;
-  final String unit; // л, кг, шт
+  final String unit;
   final String farmer;
   final String description;
   final bool isAvailable;
