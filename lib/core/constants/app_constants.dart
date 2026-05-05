@@ -6,6 +6,7 @@ class AppConstants {
   static const String keyUserEmail = 'user_email';
   static const String kSessionKey = 'session_user_id';
   static const String kUserEmailKey = 'session_user_email';
+  static const String kSessionTokenKey = 'session_user_token';
   static const String kThemeKey = 'theme_mode';
   static const String kOnboardingCompletedKey = 'onboarding_completed';
 

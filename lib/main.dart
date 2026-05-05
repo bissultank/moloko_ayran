@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dio/dio.dart';
 
 import 'core/router/app_router.dart';
 import 'data/datasources/address_local_datasource.dart';
 import 'data/datasources/app_database.dart';
 import 'data/datasources/auth_local_datasource.dart';
+import 'data/datasources/auth_remote_datasource.dart';
 import 'data/datasources/cart_local_datasource.dart';
 import 'data/datasources/order_local_datasource.dart';
 import 'data/datasources/product_local_datasource.dart';
@@ -48,7 +50,11 @@ class MolokoAyranApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authLocalDatasource = AuthLocalDatasource(db);
-    final authRepository = AuthRepositoryImpl(authLocalDatasource);
+    final authRemoteDatasource = AuthRemoteDatasource(Dio());
+    final authRepository = AuthRepositoryImpl(
+      authLocalDatasource,
+      authRemoteDatasource,
+    );
 
     final productRepository = ProductRepositoryImpl(productDatasource);
 

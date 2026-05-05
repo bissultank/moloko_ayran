@@ -127,6 +127,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         isLoading: isLoading,
                       ),
                       const SizedBox(height: 12),
+                      Text(
+                        'eve.holt@reqres.in / pistol',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 12),
                       TextButton(
                         onPressed: isLoading
                             ? null

@@ -123,6 +123,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     isLoading: isLoading,
                   ),
                   const SizedBox(height: 12),
+                  Text(
+                    'Демо онлайн-регистрация: eve.holt@reqres.in / pistol',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
                   TextButton(
                     onPressed: isLoading ? null : () => context.pop(),
                     child: const Text('Уже есть аккаунт? Войти'),
