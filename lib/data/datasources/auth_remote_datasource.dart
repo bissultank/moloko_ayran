@@ -8,7 +8,7 @@ class AuthRemoteDatasource {
   final Dio _dio;
 
   static const _baseUrl = 'https://reqres.in/api';
-  static const _apiKey = 'reqres-free-v1';
+  static const _apiKey = 'free_user_3DNh6gStCD7MAS70WTD52IeCBax';
 
   Future<String> login({
     required String email,

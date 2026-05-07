@@ -2,6 +2,8 @@
 
 import 'dart:math';
 
+import 'package:dio/dio.dart';
+
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_datasource.dart';
@@ -24,8 +26,10 @@ class AuthRepositoryImpl implements AuthRepository {
     String token;
     try {
       token = await _remoteDatasource.login(email: email, password: password);
-    } catch (_) {
-      // reqres.in отклонил — пробуем локальный логин (пароль проверяется в БД)
+    } on DioException catch (e) {
+      // Сервер ответил — значит сеть есть, но данные неверны → не делаем fallback
+      if (e.response != null) rethrow;
+      // Нет связи — пробуем локальный логин
       final localUser = await _localDatasource.login(email: email, password: password);
       token = _localToken();
       await _localDatasource.saveSession(localUser, token: token);
